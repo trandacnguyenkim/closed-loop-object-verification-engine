@@ -1,0 +1,45 @@
+# ══════════════════════════════════════════════════════════════════════
+# CLOVE — Closed-Loop Synthetic Data Generation Pipeline
+#
+# Install everything:
+#   pip install -r requirements.txt
+#   pip install -e /path/to/MIGC      # editable install of MIGC itself
+#
+# PyTorch is NOT listed here — install it first separately:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+# ══════════════════════════════════════════════════════════════════════
+
+# --- Core diffusion stack ---
+diffusers==0.21.4
+transformers==4.40.2
+accelerate==0.29.3
+safetensors==0.4.3
+xformers==0.0.25
+
+# --- Image processing ---
+Pillow==10.3.0
+opencv-python==4.9.0.80
+numpy==1.26.4
+
+# --- LLM planner ---
+openai==1.30.1
+python-dotenv==1.0.1
+
+# --- Critic validator ---
+# transformers above covers AutoProcessor + AutoModelForZeroShotObjectDetection
+
+# --- Dataset / annotation ---
+pycocotools==2.0.7
+ultralytics
+
+# --- Utilities ---
+huggingface_hub==0.23.0
+tqdm==4.66.4
+gdown
+
+# --- MIGC dependencies ---
+# These are required by MIGC internals (migc_layers.py, migc_arch.py, etc.)
+einops>=0.7.0
+omegaconf>=2.3.0
+scipy>=1.11.0
+scikit-image>=0.21.0
