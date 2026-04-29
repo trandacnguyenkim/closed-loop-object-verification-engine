@@ -79,7 +79,7 @@ convert_split(
 convert_split(
     f'{COCO_ROOT}/annotations/instances_val2017.json',
     'val2017',
-    allowed_stems=None,   # all val images
+    allowed_stems=None,
 )
 
 print('All done.')

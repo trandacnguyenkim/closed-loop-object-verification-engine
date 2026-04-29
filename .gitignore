@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*egg-info/
+# *.sh
+# *.slurm
+*.out
+*.err
+*datasets/
+dataset/
+runs/
+*.pt

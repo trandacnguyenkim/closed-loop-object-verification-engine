@@ -36,8 +36,14 @@ export MIGC_YAML="/scratch/kt68/pretrained_weights/v1-inference.yaml"
 
 # ── 3. Venv: create once, reuse on every subsequent job ───────────────
 VENV_DIR="/scratch/kt68/venvs/clove"
-MIGC_DIR="/home/kt68/clove/MIGC"
-CLOVE_DIR="/home/kt68/clove"
+CLOVE_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
+MIGC_DIR="${MIGC_DIR:-$CLOVE_DIR/MIGC}"
+
+if [ ! -d "$MIGC_DIR" ]; then
+    echo "ERROR: MIGC repository not found at '$MIGC_DIR'."
+    echo "Set MIGC_DIR to a valid checkout before submitting this job."
+    exit 1
+fi
 
 if [ ! -f "$VENV_DIR/.setup_complete" ]; then
     echo "Setting up virtual environment at $VENV_DIR ..."
@@ -119,6 +125,6 @@ echo "MIGC_SAFETENSOR:$MIGC_SAFETENSOR"
 
 # ── 6. Run ────────────────────────────────────────────────────────────
 cd "$CLOVE_DIR"
-srun python generate_images.py
+srun python "$CLOVE_DIR/images_generation/generate_images.py"
 
 echo "Job finished at $(date)"

@@ -7,13 +7,20 @@ standard mode for all scenarios. Results are saved in timestamped
 directories under /scratch/{USER}/clove_output/ with full iteration logs.
 """
 
+import argparse
 import json
 import os
+import sys
 import time
-import argparse
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from src.loop_manager import LoopManager
 from src.utils import save_coco_annotations
-from .SCENARIOS import SCENARIOS  # Assume this is a list of dicts with 'name' and 'prompt' keys
+from images_generation.SCENARIOS import SCENARIOS
 
 USER="kt68"  # Update this to your username for correct paths
 
