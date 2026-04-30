@@ -1,30 +1,30 @@
 #!/bin/bash
-#SBATCH --job-name=yolo-coco8k-2ksyn
-#SBATCH --partition=debug
+#SBATCH --job-name=yolo-coco7-5k-2-5ksyn
+#SBATCH --partition=commons
 #SBATCH --account=commons
 #SBATCH --ntasks=1
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8G
 #SBATCH --gres=gpu:1
-#SBATCH --time=0:30:00
-#SBATCH --output=logs/yolo_coco8k_2ksyn_%j.out
-#SBATCH --error=logs/yolo_coco8k_2ksyn_%j.err
+#SBATCH --time=3:00:00
+#SBATCH --output=logs/yolo_coco7-5k_2-5ksyn_%j.out
+#SBATCH --error=logs/yolo_coco7-5k_2-5ksyn_%j.err
 
 # ======================================================================
-# CLOVE -- YOLO Training: 8,000 COCO + 2,000 synthetic (coco8000_syn2k)
+# CLOVE -- YOLO Training: 7,500 COCO + all synthetic (coco7500_2-5ksyn)
 #
-# Dataset  : /scratch/<USER>/clove/training_datasets/coco8000_syn2k/
+# Dataset  : /scratch/<USER>/clove/training_datasets/coco7500_2-5ksyn/
 # Val set  : 100% real COCO val images (inside dataset.yaml)
 # Model    : YOLOv8n from scratch (yolov8n.yaml)
-# Output   : /scratch/<USER>/clove/runs/yolo_experiments/coco8000_syn2k/
+# Output   : /scratch/<USER>/clove/runs/yolo_experiments/coco7500_2-5ksyn/
 #
 # Submit:
-#   sbatch submit_yolo_coco8000_syn2k.slurm
+#   sbatch submit_yolo_coco7500_2-5ksyn.slurm
 # ======================================================================
 
 echo "=============================================="
-echo " CLOVE YOLO Training -- coco8000_syn2k"
+echo " CLOVE YOLO Training -- coco7500_2-5ksyn"
 echo " Job ID   : $SLURM_JOB_ID"
 echo " Node     : $(hostname)"
 echo " Started  : $(date)"
@@ -37,7 +37,7 @@ module purge
 USER="${USER:-qmt1}"
 CLOVE_DIR="/scratch/$USER/clove"
 VENV_DIR="/scratch/$USER/venvs/clove2"
-DATASET_YAML="$CLOVE_DIR/combined_dataset_8kCOCO_2ksynth/dataset.yaml"
+DATASET_YAML="$CLOVE_DIR/combined_dataset_7-5kCOCO_2-5ksynth/dataset.yaml"
 RUNS_DIR="$CLOVE_DIR/runs/yolo_experiments"
 COMPARISON_FILE="$RUNS_DIR/experiment_comparison.json"
 
@@ -57,20 +57,8 @@ mkdir -p "$XDG_CACHE_HOME" "$HF_HUB_CACHE" "$TORCH_HOME" "$TMPDIR" \
 # ── 3. Activate venv ──────────────────────────────────────────────────
 if [ ! -f "$VENV_DIR/.setup_complete" ]; then
     echo "ERROR: Venv not found at $VENV_DIR"
-    echo "[Prep] Building COCO 8k combined dataset (2k synthetic)..."
-    mkdir -p "$DATASET_DIR"
-
-    python experiments/data_preparation/build_combined_dataset.py \
-        --coco_train "$COCO_TRAIN" \
-        --coco_val   "$COCO_VAL" \
-        --synthetic  "$RUNS_DIR/no_synthetic" \
-        --n_train    8000 \
-        --n_val      5000 \
-        --output     "$DATASET_DIR" \
-        --n_synthetic 2000 || {
-        echo "ERROR: build_combined_dataset.py failed"
-        exit 1
-    }
+    echo "       Run the generation job first to build the environment."
+    exit 1
 fi
 source "$VENV_DIR/bin/activate"
 
@@ -88,8 +76,20 @@ python -c "import ultralytics" 2>/dev/null || {
 # ── 4. Pre-flight checks ───────────────────────────────────────────────
 if [ ! -f "$DATASET_YAML" ]; then
     echo "ERROR: Dataset YAML not found: $DATASET_YAML"
-    echo "       Run prepare_training_datasets.py --n_coco 9000 first."
-    exit 1
+    echo "[Prep] Building COCO 7.5k combined dataset (2.5k synthetic)..."
+    mkdir -p "$DATASET_DIR"
+
+    python experiments/data_preparation/build_combined_dataset.py \
+        --coco_train "$COCO_TRAIN" \
+        --coco_val   "$COCO_VAL" \
+        --synthetic  "$RUNS_DIR/no_synthetic" \
+        --n_train    7500 \
+        --n_val      5000 \
+        --output     "$DATASET_DIR" \
+        --n_synthetic 2500 || {
+        echo "ERROR: build_combined_dataset.py failed"
+        exit 1
+    }
 fi
 
 echo ""
@@ -126,7 +126,7 @@ BATCH=32
 WORKERS=8
 SEED=42
 PATIENCE=15
-RUN_NAME="coco8000_syn2k"
+RUN_NAME="coco7500_2-5ksyn"
 
 echo ""
 echo "=============================="
@@ -143,13 +143,11 @@ echo "  Run name : $RUN_NAME"
 echo ""
 
 # ── 6. Train ───────────────────────────────────────────────────────────
-# cd "$CLOVE_DIR"
+cd "$CLOVE_DIR"
 
 echo "=============================="
 echo " Starting training"
 echo "=============================="
-
-
 
 srun python experiments/synthetic_and_COCO_yolo_training/train_yolo.py \
     --model           "$MODEL"           \
@@ -195,7 +193,7 @@ else
     echo "=============================="
     echo " ERROR: Training failed (exit code $TRAIN_EXIT)"
     echo "=============================="
-    echo "Check logs: /scratch/$USER/clove/logs/yolo_coco8k_syn2k_${SLURM_JOB_ID}.err"
+    echo "Check logs: /scratch/$USER/clove/logs/yolo_coco7-5k_2-5ksyn_${SLURM_JOB_ID}.err"
     exit $TRAIN_EXIT
 fi
 

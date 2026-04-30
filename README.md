@@ -144,11 +144,14 @@ OPTIONS:
 ## Experiments Workflow
 
 ### Data Preparation
-
 Prepare generated synthetic data for training:
 
+See [experiments/data_preparation/README.md](experiments/data_preparation/README.md) for detailed instructions and runnable examples, including:
+- combining multiple synthetic outputs (`combine_synthetic_datasets.py`)
+- building a full COCO+synthetic training dataset (`build_combined_dataset.py`)
+
 ```bash
-cd experiments/data_preperation/
+cd experiments/data_preparation/
 # Follow instructions in that subfolder
 ```
 
