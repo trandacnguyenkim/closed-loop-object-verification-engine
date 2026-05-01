@@ -15,29 +15,23 @@ nvidia-smi
 
 module purge
 
-# ── 1. Cache dirs ─────────────────────────────────────────────────────
-export CLOVE_CACHE_DIR="/scratch/kt68/cache/clove"
-export XDG_CACHE_HOME="$CLOVE_CACHE_DIR/xdg"
-export HF_HOME="/scratch/kt68/hf_cache"
-export HF_HUB_CACHE="$HF_HOME/hub"
-export TRANSFORMERS_CACHE="$HF_HUB_CACHE"
-export TORCH_HOME="$CLOVE_CACHE_DIR/torch"
-export TMPDIR="$CLOVE_CACHE_DIR/tmp"
-export TEMP="$TMPDIR"
-export TMP="$TMPDIR"
-export PIP_CACHE_DIR="/scratch/kt68/cache/pip"
+# ── 0. Scratch root ──────────────────────────────────────────────────
+SCRATCH_USER="qmt1"
+SCRATCH_ROOT="/scratch/$SCRATCH_USER"
 
-mkdir -p "$XDG_CACHE_HOME" "$HF_HUB_CACHE" "$TORCH_HOME" "$TMPDIR" "$PIP_CACHE_DIR"
+# ── 1. Cache dirs ─────────────────────────────────────────────────────
+export CLOVE_CACHE_DIR="$SCRATCH_ROOT/cache/clove"
+
 
 # ── 2. Model paths ────────────────────────────────────────────────────
-export MIGC_CKPT_PATH="/scratch/kt68/pretrained_weights/MIGC_SD14.ckpt"
-export MIGC_SAFETENSOR="/scratch/kt68/pretrained_weights/Realistic_Vision_V5.1_fp16-no-ema.safetensors"
-export MIGC_YAML="/scratch/kt68/pretrained_weights/v1-inference.yaml"
+export MIGC_CKPT_PATH="$SCRATCH_ROOT/pretrained_weights/MIGC_SD14.ckpt"
+export MIGC_SAFETENSOR="$SCRATCH_ROOT/pretrained_weights/Realistic_Vision_V5.1_fp16-no-ema.safetensors"
+export MIGC_YAML="$SCRATCH_ROOT/pretrained_weights/v1-inference.yaml"
 
 # ── 3. Venv: create once, reuse on every subsequent job ───────────────
-VENV_DIR="/scratch/kt68/venvs/clove"
+VENV_DIR="$SCRATCH_ROOT/venvs/clove2"
 CLOVE_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
-MIGC_DIR="${MIGC_DIR:-$CLOVE_DIR/MIGC}"
+MIGC_DIR="${CLOVE_DIR}/MIGC"
 
 if [ ! -d "$MIGC_DIR" ]; then
     echo "ERROR: MIGC repository not found at '$MIGC_DIR'."
@@ -73,7 +67,7 @@ else
 fi
 
 # ── 4. Download weights (once, uses venv's gdown) ─────────────────────
-WEIGHTS_DIR="/scratch/kt68/pretrained_weights"
+WEIGHTS_DIR="$SCRATCH_ROOT/pretrained_weights"
 WEIGHTS_READY="$WEIGHTS_DIR/.weights_complete"
 
 if [ ! -f "$WEIGHTS_READY" ]; then
@@ -125,6 +119,6 @@ echo "MIGC_SAFETENSOR:$MIGC_SAFETENSOR"
 
 # ── 6. Run ────────────────────────────────────────────────────────────
 cd "$CLOVE_DIR"
-srun python "$CLOVE_DIR/images_generation/generate_images.py"
+srun python "$CLOVE_DIR/images_generation/generate_images.py" --smoke
 
 echo "Job finished at $(date)"
