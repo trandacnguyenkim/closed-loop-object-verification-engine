@@ -22,7 +22,6 @@ from src.loop_manager import LoopManager
 from src.utils import save_coco_annotations
 from images_generation.SCENARIOS import SCENARIOS
 
-USER="kt68"  # Update this to your username for correct paths
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -33,13 +32,13 @@ USER="kt68"  # Update this to your username for correct paths
 # git clone https://github.com/limuloo/MIGC
 # cd MIGC && pip install -e .
 
-def generate_images(smoke: bool = False, standard_only: bool = True, initial_seed: int = 91):
+def generate_images(smoke: bool = False, standard_only: bool = True, initial_seed: int = 91, output_dir: str = "clove_output"):
     """
     Run all scenarios in standard mode only, or in both standard and
     hard-negative modes by default.
     """
     max_iterations = 1 if smoke else 5
-    manager = LoopManager(max_iterations=max_iterations, output_dir=f"/scratch/{USER}/clove_output")
+    manager = LoopManager(max_iterations=max_iterations, output_dir=os.path.join(output_dir))
     results_summary = []
     coco_records = []  # accumulates (image_path, layout) for accepted images
     batch_timestamp = time.strftime("%m%d%y-%H%M%S")
@@ -105,7 +104,7 @@ def generate_images(smoke: bool = False, standard_only: bool = True, initial_see
                 print(f"[Main] ✗ FAILED after {result['iterations']} iteration(s)")
 
     # --- Save overall summary ---
-    summary_dir = os.path.join(f"/scratch/{USER}/clove_output", batch_timestamp)
+    summary_dir = os.path.join(output_dir, batch_timestamp)
     os.makedirs(summary_dir, exist_ok=True)
     summary_path = os.path.join(summary_dir, "batch_summary.json")
     with open(summary_path, "w") as f:
@@ -155,5 +154,11 @@ if __name__ == "__main__":
         default=91,
         help="Initial random seed used for generation. Change this to create new variations.",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="clove_output",
+        help="Output directory name (under /scratch/{USER}); defaults to 'clove_output'.",
+    )
     args = parser.parse_args()
-    generate_images(smoke=args.smoke, standard_only=args.standard_only, initial_seed=args.seed)
+    generate_images(smoke=args.smoke, standard_only=args.standard_only, initial_seed=args.seed, output_dir=args.output_dir)
